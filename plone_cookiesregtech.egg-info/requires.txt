@@ -1,0 +1,2 @@
+Products.CMFPlone>=6.0
+plone.api

@@ -1,0 +1,147 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en"
+      xmlns:tal="http://xml.zope.org/namespaces/tal"
+      xmlns:metal="http://xml.zope.org/namespaces/metal"
+      xmlns:i18n="http://xml.zope.org/namespaces/i18n"
+      lang="en"
+      metal:use-macro="context/main_template/macros/master"
+      i18n:domain="plone_cookiesregtech">
+<body>
+
+<metal:main fill-slot="main">
+  <tal:block tal:define="settings view/settings;
+                         state view/state;
+                         overview view/overview;
+                         portal_url context/absolute_url;
+                         action string:${portal_url}/@@cookiesregtech-settings;
+                         token context/@@authenticator/token">
+
+  <link rel="stylesheet"
+        tal:attributes="href string:${portal_url}/++resource++plone_cookiesregtech/css/admin.css" />
+
+  <div class="crt-wrap">
+    <div class="crt-head">
+      <div class="crt-brand">
+        <span class="crt-badge" aria-hidden="true">CR</span>
+        <h1 class="crt-title">CookiesRegTech - Cookie Consent</h1>
+      </div>
+      <span class="crt-pill" tal:condition="python: state == 'connected'">&#9679; Connected</span>
+    </div>
+    <p class="crt-tagline">GDPR/CCPA consent banner, cookie scanner and consent log for this website.</p>
+
+    <tal:connect tal:condition="python: state == 'connect'">
+      <form method="post" class="crt-panel" tal:attributes="action action">
+        <input type="hidden" name="_authenticator" tal:attributes="value token" />
+        <input type="hidden" name="crt_action" value="connect" />
+        <label class="crt-field">
+          <span>Account email</span>
+          <input type="email" name="email" required=""
+                 tal:attributes="value python: settings.email or view.admin_email()" />
+          <small>The consent dashboard login. If this email already has a CookiesRegTech account, we send it a confirmation link instead of creating a new one.</small>
+        </label>
+        <label class="crt-consent">
+          <input type="checkbox" name="consent" value="1" required="" />
+          <span>Create a free CookiesRegTech account for this email, connect this website, and accept the
+            <a href="https://www.cookiesregtech.com/terms-and-condition" target="_blank" rel="noopener">Terms &amp; Conditions</a> and
+            <a href="https://www.cookiesregtech.com/privacy-policy" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+        </label>
+        <p class="crt-actions">
+          <button type="submit" class="crt-btn crt-btn-primary">Connect website</button>
+          <span class="crt-hint">Free plan &#183; no card required</span>
+        </p>
+      </form>
+    </tal:connect>
+
+    <tal:pending tal:condition="python: state == 'pending'">
+      <div class="crt-notice-box">
+        <h3>Almost done. Confirm from the inbox</h3>
+        <p>A confirmation link was sent to <strong tal:content="settings/email">email</strong> because this email already has a CookiesRegTech account. Click the link in that email, then come back here.</p>
+      </div>
+      <div class="crt-actions">
+        <form method="post" style="display:inline" tal:attributes="action action">
+          <input type="hidden" name="_authenticator" tal:attributes="value token" />
+          <input type="hidden" name="crt_action" value="check" />
+          <button type="submit" class="crt-btn crt-btn-primary">Check status</button>
+        </form>
+        <form method="post" style="display:inline" tal:attributes="action action">
+          <input type="hidden" name="_authenticator" tal:attributes="value token" />
+          <input type="hidden" name="crt_action" value="reset" />
+          <button type="submit" class="crt-btn">Start over</button>
+        </form>
+      </div>
+    </tal:pending>
+
+    <tal:connected tal:condition="python: state == 'connected'">
+      <table class="crt-status">
+        <tr><th scope="row">Account</th>
+            <td tal:content="python: settings.email or (overview and overview.get('email')) or '-'">email</td></tr>
+        <tr><th scope="row">Website</th>
+            <td tal:content="python: (overview and overview.get('hostname')) or settings.domain_id">site</td></tr>
+        <tr><th scope="row">Plan</th>
+            <td tal:content="python: (overview and overview.get('plan', {}).get('name')) or '-'">plan</td></tr>
+        <tr><th scope="row">Banner</th>
+            <td tal:content="python: '-' if not overview else ('Published (version %s)' % overview.get('bannerVersion') if overview.get('bannerPublished') else 'Not published yet. Open the dashboard to publish it.')">banner</td></tr>
+        <tr tal:condition="python: overview and overview.get('lastScan')">
+            <th scope="row">Last scan</th>
+            <td tal:content="python: '%s, %s pages, %s cookies found' % (overview['lastScan'].get('completedAt', ''), overview['lastScan'].get('urlsScanned', 0), overview['lastScan'].get('cookiesFound', 0))">scan</td></tr>
+      </table>
+
+      <tal:cookies tal:condition="python: overview and overview.get('cookies')">
+        <details class="crt-panel" tal:attributes="open python: 'open' if len(overview.get('cookies', [])) &lt;= 12 else None">
+          <summary>Cookies detected (<span tal:replace="python: len(overview.get('cookies', []))">0</span>)</summary>
+          <table class="crt-cookies">
+            <tr><th>Cookie</th><th>Category</th><th>Domain</th><th>Duration</th></tr>
+            <tr tal:repeat="cookie overview/cookies">
+              <td><code tal:content="cookie/name">name</code></td>
+              <td tal:content="python: view.category_label(cookie.get('category', ''))">category</td>
+              <td tal:content="cookie/domain">domain</td>
+              <td tal:content="python: cookie.get('duration') or 'Session'">duration</td>
+            </tr>
+          </table>
+          <p class="crt-help">Categories and descriptions are managed in the CookiesRegTech dashboard (Cookie Manager). Run a scan there to refresh this list.</p>
+        </details>
+      </tal:cookies>
+      <p class="crt-help" tal:condition="python: overview and not overview.get('cookies')">No cookies recorded yet. Open the dashboard and run a scan from Cookie Manager to build the cookie list.</p>
+
+      <form method="post" class="crt-panel" tal:attributes="action action">
+        <input type="hidden" name="_authenticator" tal:attributes="value token" />
+        <input type="hidden" name="crt_action" value="save" />
+        <p>
+          <label>
+            <input type="checkbox" name="banner_enabled" value="1"
+                   tal:attributes="checked python: 'checked' if settings.banner_enabled else None" />
+            Show the consent banner on this site
+          </label>
+        </p>
+        <div class="crt-actions">
+          <button type="submit" class="crt-btn">Save</button>
+        </div>
+      </form>
+      <div class="crt-actions">
+        <form method="post" target="_blank" style="display:inline" tal:attributes="action action">
+          <input type="hidden" name="_authenticator" tal:attributes="value token" />
+          <input type="hidden" name="crt_action" value="dashboard" />
+          <button type="submit" class="crt-btn crt-btn-primary">Open dashboard</button>
+        </form>
+        <form method="post" target="_blank" style="display:inline" tal:attributes="action action">
+          <input type="hidden" name="_authenticator" tal:attributes="value token" />
+          <input type="hidden" name="crt_action" value="upgrade" />
+          <button type="submit" class="crt-btn crt-btn-outline">Upgrade plan</button>
+        </form>
+        <form method="post" style="display:inline" class="crt-inline"
+              onsubmit="return confirm('Disconnect this site? The banner turns off until you reconnect.');"
+              tal:attributes="action action">
+          <input type="hidden" name="_authenticator" tal:attributes="value token" />
+          <input type="hidden" name="crt_action" value="disconnect" />
+          <button type="submit" class="crt-btn crt-btn-danger">Disconnect</button>
+        </form>
+      </div>
+    </tal:connected>
+
+    <p class="crt-version">CookiesRegTech Plone add-on v<span tal:replace="view/version">1.0.0</span></p>
+  </div>
+
+  </tal:block>
+</metal:main>
+
+</body>
+</html>

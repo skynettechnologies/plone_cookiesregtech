@@ -1,0 +1,3 @@
+<tal:script tal:define="url view/script_url" tal:condition="url">
+<script tal:attributes="src url"></script>
+</tal:script>

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<object>
+  <!-- The consent bootstrap must be the first script in <head>, before
+       any analytics viewlets. -->
+  <order manager="plone.htmlhead" skinname="*">
+    <viewlet name="plone_cookiesregtech.consentscript" insert-before="*" />
+  </order>
+</object>

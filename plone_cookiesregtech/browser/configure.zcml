@@ -1,0 +1,26 @@
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    i18n_domain="plone_cookiesregtech">
+
+  <browser:resourceDirectory
+      name="plone_cookiesregtech"
+      directory="static"
+      />
+
+  <browser:page
+      name="cookiesregtech-settings"
+      for="Products.CMFPlone.interfaces.IPloneSiteRoot"
+      class=".dashboard.SettingsView"
+      template="templates/dashboard.pt"
+      permission="cmf.ManagePortal"
+      />
+
+  <browser:viewlet
+      name="plone_cookiesregtech.consentscript"
+      manager="plone.app.layout.viewlets.interfaces.IHtmlHead"
+      class="plone_cookiesregtech.viewlets.ConsentScriptViewlet"
+      permission="zope2.View"
+      />
+
+</configure>

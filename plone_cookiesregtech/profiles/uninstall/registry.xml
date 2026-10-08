@@ -1,0 +1,5 @@
+<?xml version="1.0"?>
+<registry>
+  <records interface="plone_cookiesregtech.interfaces.ICookiesRegTechSettings"
+           prefix="plone_cookiesregtech" remove="true" />
+</registry>

@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<registry>
+  <records interface="plone_cookiesregtech.interfaces.ICookiesRegTechSettings"
+           prefix="plone_cookiesregtech">
+    <value key="server">https://www.cookiesregtech.com</value>
+    <value key="domain_id"></value>
+    <value key="secret"></value>
+    <value key="pending_token"></value>
+    <value key="email"></value>
+    <value key="banner_enabled">True</value>
+  </records>
+</registry>
